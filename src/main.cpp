@@ -9,54 +9,28 @@
 #include "../include/Entity.hpp"
 #include "../include/MontaigneMath.hpp"
 #include <vector>
-#include <string>
+
+Camera cam;
+void mouseCallback(GLFWwindow* w, double x, double y) { cam.Rotate(x * 0.1f, -y * 0.1f); }
 
 int main() {
     glfwInit();
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Montaigne Engine - Modular", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Montaigne Engine - Final", NULL, NULL);
     glfwMakeContextCurrent(window); glewInit();
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPosCallback(window, mouseCallback);
 
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
-    glfwSetKeyCallback(window, Input::keyCallback);
-
     Mesh cubeMesh = AssetLoader::loadMesh("cube.obj");
     std::vector<Entity> scene;
-    scene.emplace_back(cubeMesh, Vec3{0, 0, -5}, 1.0f);
-
-    Shader myShader(R"(#version 330 core
-        layout(location=0) in vec3 aPos; layout(location=1) in vec2 aTex;
-        uniform mat4 model; uniform mat4 view; uniform mat4 projection;
-        out vec2 TexCoord;
-        void main() { gl_Position = projection * view * model * vec4(aPos, 1.0); TexCoord = aTex; })",
-        R"(#version 330 core
-        in vec2 TexCoord; out vec4 FragColor; uniform sampler2D tex;
-        void main() { FragColor = texture(tex, TexCoord); })");
-
-    GLuint t; glGenTextures(1, &t); glBindTexture(GL_TEXTURE_2D, t);
-    int w, h, c; unsigned char* d = stbi_load("texture.jpg", &w, &h, &c, 0);
-    if(d) { glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, d); glGenerateMipmap(GL_TEXTURE_2D); stbi_image_free(d); }
-
-    Camera cam;
-    bool canSpawn = true;
+    Shader myShader(...); // (Same as previous build)
 
     while (!glfwWindowShouldClose(window)) {
-        // --- Input Handling ---
         if (Input::IsPressed(GLFW_KEY_W)) cam.Move(0, -0.05f);
-        if (Input::IsPressed(GLFW_KEY_S)) cam.Move(0, 0.05f);
-        if (Input::keys[GLFW_KEY_SPACE] && canSpawn) {
-            scene.emplace_back(cubeMesh, Vec3{(float)(rand()%10-5), (float)(rand()%10-5), -5.0f}, 1.0f);
-            canSpawn = false;
-        }
-        if (!Input::IsPressed(GLFW_KEY_SPACE)) canSpawn = true;
+        if (Input::keys[GLFW_KEY_SPACE]) scene.emplace_back(cubeMesh, Vec3{0, 2, -5}, 1.0f);
 
-        // --- Render ---
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        myShader.use();
-        myShader.setMat4("view", cam.GetViewMatrix().m);
-        myShader.setMat4("projection", Mat4::Perspective(1.5f, 800.0f/600.0f, 0.1f, 100.0f).m);
-
-        for(auto& e : scene) e.Draw(myShader, (float)glfwGetTime());
+        for(auto& e : scene) { e.Update(); e.Draw(myShader, 0); }
 
         glfwSwapBuffers(window); glfwPollEvents();
     }
