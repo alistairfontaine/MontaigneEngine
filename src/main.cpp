@@ -23,16 +23,19 @@ int main() {
         void main() { gl_Position = projection * view * model * vec4(aPos, 1.0); })",
         "#version 330 core\nout vec4 FragColor;\nvoid main(){FragColor=vec4(0.2,0.8,0.5,1.0);}");
 
-    float identity[] = { 1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1 };
+    Mat4 identity = Mat4::Identity();
 
     while (!glfwWindowShouldClose(window)) {
         glClear(GL_COLOR_BUFFER_BIT);
         myShader.use();
 
-        // Passing the 3D matrices to the GPU
-        myShader.setMat4("model", identity);
-        myShader.setMat4("view", identity);
-        myShader.setMat4("projection", identity);
+        // Dynamic Rotation: Rotate based on time
+        float angle = (float)glfwGetTime();
+        Mat4 model = Mat4::RotationZ(angle);
+
+        myShader.setMat4("model", model.m);
+        myShader.setMat4("view", identity.m);
+        myShader.setMat4("projection", identity.m);
 
         glBindBuffer(GL_ARRAY_BUFFER, myTriangle.VBO);
         glEnableVertexAttribArray(0);
