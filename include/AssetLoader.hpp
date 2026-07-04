@@ -31,7 +31,6 @@ public:
                     size_t slash = part.find('/');
                     int vIdx = std::stoi(part.substr(0, slash)) - 1;
                     int vtIdx = std::stoi(part.substr(slash + 1)) - 1;
-
                     finalV.push_back(tempV[vIdx*3]);
                     finalV.push_back(tempV[vIdx*3+1]);
                     finalV.push_back(tempV[vIdx*3+2]);
