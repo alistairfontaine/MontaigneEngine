@@ -12,14 +12,15 @@
 
 int main() {
     glfwInit();
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Montaigne Engine", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Montaigne Engine - Stable", NULL, NULL);
     glfwMakeContextCurrent(window); glewInit();
     glEnable(GL_DEPTH_TEST);
     glfwSetKeyCallback(window, Input::keyCallback);
 
     Mesh cubeMesh = AssetLoader::loadMesh("cube.obj");
-    std::vector<Entity> scene = { {cubeMesh, {-1.0f, 0, -5.0f}, 1.0f}, {cubeMesh, {1.0f, 0, -5.0f}, 2.0f} };
+    std::vector<Entity> scene = { {cubeMesh, {-1.0f, 0, -5.0f}, 1.5f}, {cubeMesh, {1.0f, 0, -5.0f}, 2.5f} };
 
+    // Basic shader - no lighting calculations to avoid memory mismatches
     Shader myShader(R"(#version 330 core
         layout(location=0) in vec3 aPos; layout(location=1) in vec2 aTex;
         uniform mat4 model; uniform mat4 view; uniform mat4 projection;
@@ -31,8 +32,7 @@ int main() {
 
     GLuint t; glGenTextures(1, &t); glBindTexture(GL_TEXTURE_2D, t);
     int w, h, c; unsigned char* d = stbi_load("texture.jpg", &w, &h, &c, 0);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, d);
-    glGenerateMipmap(GL_TEXTURE_2D); stbi_image_free(d);
+    if(d) { glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, d); glGenerateMipmap(GL_TEXTURE_2D); stbi_image_free(d); }
 
     Camera cam;
     while (!glfwWindowShouldClose(window)) {
