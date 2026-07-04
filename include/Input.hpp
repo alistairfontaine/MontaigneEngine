@@ -5,9 +5,8 @@
 
 class Input {
 public:
-    static bool keys[1024];
+    static inline bool keys[1024] = {false}; // 'inline' solves the linker error
 
-    // By removing the variable names for unused params, the compiler stops complaining
     static void keyCallback(GLFWwindow*, int key, int, int action, int) {
         if (key >= 0 && key < 1024) {
             if (action == GLFW_PRESS) keys[key] = true;
@@ -15,7 +14,5 @@ public:
         }
     }
 };
-
-bool Input::keys[1024] = {false};
 
 #endif
