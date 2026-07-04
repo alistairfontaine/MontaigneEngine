@@ -12,7 +12,6 @@ class AssetLoader {
 public:
     static Mesh loadMesh(const std::string& path) {
         std::vector<float> tempV, finalV;
-        std::vector<int> faces;
         std::ifstream file(path);
         std::string line;
         while (std::getline(file, line)) {
@@ -23,11 +22,12 @@ public:
             } else if (line.substr(0, 2) == "f ") {
                 std::istringstream s(line.substr(2));
                 int i1, i2, i3; s >> i1 >> i2 >> i3;
-                // Add vertices corresponding to face indices (subtract 1 for 0-indexing)
+
+                // Add vertices
                 for (int i : {i1, i2, i3}) {
                     finalV.push_back(tempV[(i-1)*3]);
-                    finalV.push_back(tempV[(i-1)*3 + 1]);
-                    finalV.push_back(tempV[(i-1)*3 + 2]);
+                    finalV.push_back(tempV[(i-1)*3+1]);
+                    finalV.push_back(tempV[(i-1)*3+2]);
                 }
             }
         }
