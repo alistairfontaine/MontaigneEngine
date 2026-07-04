@@ -16,25 +16,20 @@ int main() {
     Mesh myMesh = AssetLoader::loadMesh("cube.obj");
     Camera mainCamera;
 
-    // Shader with basic Diffuse lighting
-Shader myShader(R"(#version 330 core
-        layout(location=0) in vec3 aPos;
+    // Shader displaying UV coordinates as RGB colors
+    Shader myShader(R"(#version 330 core
+        layout(location=0) in vec3 aPos; layout(location=1) in vec2 aTex;
         uniform mat4 model; uniform mat4 view; uniform mat4 projection;
-        out vec3 FragPos;
+        out vec2 TexCoord;
         void main() {
-            FragPos = vec3(model * vec4(aPos, 1.0));
-            gl_Position = projection * view * vec4(FragPos, 1.0);
+            gl_Position = projection * view * model * vec4(aPos, 1.0);
+            TexCoord = aTex;
         })",
         R"(#version 330 core
-        in vec3 FragPos;
+        in vec2 TexCoord;
         out vec4 FragColor;
-        uniform vec3 lightPos;
         void main() {
-            // Calculate normal based on surface derivative
-            vec3 norm = normalize(cross(dFdx(FragPos), dFdy(FragPos)));
-            vec3 lightDir = normalize(lightPos - FragPos);
-            float diff = max(dot(norm, lightDir), 0.2);
-            FragColor = vec4(0.8 * diff, 0.2 * diff, 0.5 * diff, 1.0);
+            FragColor = vec4(TexCoord, 0.5, 1.0);
         })");
 
     Mat4 projection = Mat4::Perspective(1.0f, 800.0f/600.0f, 0.1f, 100.0f);
@@ -51,14 +46,14 @@ Shader myShader(R"(#version 330 core
         myShader.setMat4("model", Mat4::RotationZ((float)glfwGetTime()).m);
         myShader.setMat4("view", mainCamera.GetViewMatrix().m);
         myShader.setMat4("projection", projection.m);
-        // Set light position
-        glUniform3f(glGetUniformLocation(myShader.ID, "lightPos"), 2.0f, 5.0f, 2.0f);
 
         glBindBuffer(GL_ARRAY_BUFFER, myMesh.VBO);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-        glDrawArrays(GL_TRIANGLES, 0, myMesh.vertexCount);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 
+        glDrawArrays(GL_TRIANGLES, 0, myMesh.vertexCount);
         glfwSwapBuffers(window); glfwPollEvents();
     }
     glfwTerminate(); return 0;
