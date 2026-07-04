@@ -1,18 +1,14 @@
 #ifndef INPUT_HPP
 #define INPUT_HPP
-
 #include <GLFW/glfw3.h>
+#include <map>
 
-class Input {
-public:
-    static inline bool keys[1024] = {false}; // 'inline' solves the linker error
-
-    static void keyCallback(GLFWwindow*, int key, int, int action, int) {
-        if (key >= 0 && key < 1024) {
-            if (action == GLFW_PRESS) keys[key] = true;
-            else if (action == GLFW_RELEASE) keys[key] = false;
-        }
+struct Input {
+    static inline std::map<int, bool> keys;
+    static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+        if (action == GLFW_PRESS) keys[key] = true;
+        else if (action == GLFW_RELEASE) keys[key] = false;
     }
+    static bool IsPressed(int key) { return keys[key]; }
 };
-
 #endif

@@ -9,11 +9,11 @@
 #include "../include/Entity.hpp"
 #include "../include/MontaigneMath.hpp"
 #include <vector>
-#include <cstdlib> // For rand()
+#include <string>
 
 int main() {
     glfwInit();
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Montaigne Engine - Scene Editor", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(800, 600, "Montaigne Engine - Modular", NULL, NULL);
     glfwMakeContextCurrent(window); glewInit();
 
     glEnable(GL_DEPTH_TEST);
@@ -22,7 +22,7 @@ int main() {
 
     Mesh cubeMesh = AssetLoader::loadMesh("cube.obj");
     std::vector<Entity> scene;
-    scene.push_back(Entity(cubeMesh, {0.0f, 0.0f, -5.0f}, 1.0f));
+    scene.emplace_back(cubeMesh, Vec3{0, 0, -5}, 1.0f);
 
     Shader myShader(R"(#version 330 core
         layout(location=0) in vec3 aPos; layout(location=1) in vec2 aTex;
@@ -38,23 +38,19 @@ int main() {
     if(d) { glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, w, h, 0, GL_RGB, GL_UNSIGNED_BYTE, d); glGenerateMipmap(GL_TEXTURE_2D); stbi_image_free(d); }
 
     Camera cam;
-    bool spacePressed = false; // Debounce for spawning
+    bool canSpawn = true;
 
     while (!glfwWindowShouldClose(window)) {
-        if (Input::keys[GLFW_KEY_W]) cam.Move(0, -0.05f);
-        if (Input::keys[GLFW_KEY_S]) cam.Move(0, 0.05f);
-        if (Input::keys[GLFW_KEY_A]) cam.Move(-0.05f, 0);
-        if (Input::keys[GLFW_KEY_D]) cam.Move(0.05f, 0);
-
-        // Scene Editor: Spawn object
-        if (Input::keys[GLFW_KEY_SPACE] && !spacePressed) {
-            float rx = ((float)rand()/(float)RAND_MAX) * 4.0f - 2.0f;
-            float ry = ((float)rand()/(float)RAND_MAX) * 4.0f - 2.0f;
-            scene.push_back(Entity(cubeMesh, {rx, ry, -5.0f}, 1.0f + (float)(rand()%5)));
-            spacePressed = true;
+        // --- Input Handling ---
+        if (Input::IsPressed(GLFW_KEY_W)) cam.Move(0, -0.05f);
+        if (Input::IsPressed(GLFW_KEY_S)) cam.Move(0, 0.05f);
+        if (Input::keys[GLFW_KEY_SPACE] && canSpawn) {
+            scene.emplace_back(cubeMesh, Vec3{(float)(rand()%10-5), (float)(rand()%10-5), -5.0f}, 1.0f);
+            canSpawn = false;
         }
-        if (!Input::keys[GLFW_KEY_SPACE]) spacePressed = false;
+        if (!Input::IsPressed(GLFW_KEY_SPACE)) canSpawn = true;
 
+        // --- Render ---
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         myShader.use();
         myShader.setMat4("view", cam.GetViewMatrix().m);
