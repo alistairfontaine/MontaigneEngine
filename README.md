@@ -27,3 +27,23 @@ A custom-built 3D graphics engine written in C++ with OpenGL. This project track
 - OpenGL 3.3
 - GLFW
 - GLEW
+
+# MontaigneEngine
+A lightweight 3D game engine built in C++.
+
+## Features
+- **Physics-enabled:** Cube spawning with gravity and floor collision.
+- **Interactive Camera:** Flythrough mode with mouse-look and zoom.
+- **Rendering:** Texture-mapped 3D models with depth testing.
+
+## Building
+1. Install `libglfw3-dev` and `libglew-dev`.
+2. Clone the repo: `git clone <url>`
+3. Run `make` in the root directory.
+4. Run the executable: `./bin/montaigne`
+
+## Controls
+- **W/A/S/D:** Fly through the scene.
+- **Space:** Spawn a new cube.
+- **Mouse:** Rotate camera.
+- **Scroll:** Zoom FOV.
