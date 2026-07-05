@@ -28,6 +28,10 @@ A custom-built 3D graphics engine written in C++ with OpenGL. This project track
 - GLFW
 - GLEW
 
+## Build Requirements
+- C++20 Compiler
+- GLFW, GLEW, stb_image
+
 # MontaigneEngine
 A lightweight 3D game engine built in C++.
 
