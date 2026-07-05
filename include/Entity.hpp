@@ -5,9 +5,10 @@
 #include "Mesh.hpp"
 #include "MontaigneMath.hpp"
 #include "Shader.hpp"
+#include "Collision.hpp"
 
 struct Entity {
-    int id;            // Unique identifier for scene management tracking
+    int id;
     Mesh mesh;
     Vec3 position;
     Vec3 rotation;
@@ -16,6 +17,14 @@ struct Entity {
 
     Entity(int uniqueID, Mesh m, Vec3 pos, GLuint tex)
         : id(uniqueID), mesh(m), position(pos), rotation{0.0f, 0.0f, 0.0f}, scale{1.0f, 1.0f, 1.0f}, textureID(tex) {}
+
+    // Computes bounding volume extents from center-point translations
+    AABB GetBoundingBox() const {
+        AABB box;
+        box.minBounds = Vec3{ position.x - scale.x, position.y - scale.y, position.z - scale.z };
+        box.maxBounds = Vec3{ position.x + scale.x, position.y + scale.y, position.z + scale.z };
+        return box;
+    }
 
     void Draw(Shader& shader) {
         shader.use();

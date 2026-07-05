@@ -180,6 +180,18 @@ void Engine::Run() {
 
         ProcessInput();
 
+        camera.pos.y -= 4.0f * deltaTime;
+        AABB playerBox;
+        playerBox.minBounds = Vec3{ camera.pos.x - 0.25f, camera.pos.y - 1.25f, camera.pos.z - 0.25f };
+        playerBox.maxBounds = Vec3{ camera.pos.x + 0.25f, camera.pos.y + 0.25f, camera.pos.z + 0.25f };
+        for (const auto& pair : entities) {
+            AABB entityBox = pair.second.GetBoundingBox();
+            if (AABB::CheckIntersection(playerBox, entityBox)) {
+                if (camera.pos.y < entityBox.maxBounds.y + 1.25f) {
+                    camera.pos.y = entityBox.maxBounds.y + 1.25f;
+                }
+            }
+        }
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
