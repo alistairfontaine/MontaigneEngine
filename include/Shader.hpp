@@ -1,6 +1,5 @@
 #ifndef SHADER_HPP
 #define SHADER_HPP
-
 #include <GL/glew.h>
 #include <string>
 
@@ -20,14 +19,11 @@ public:
         glLinkProgram(ID);
     }
     void use() { glUseProgram(ID); }
-
     void setMat4(const std::string &name, const float* matrix) const {
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, matrix);
     }
-
-    // ADD THIS METHOD
-    void setVec3(const std::string &name, float x, float y, float z) const {
-        glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
+    void setInt(const std::string &name, int value) const {
+        glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
     }
 };
 #endif
