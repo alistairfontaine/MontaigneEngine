@@ -6,9 +6,11 @@
 #include <sstream>
 
 Engine::Engine()
-    : window(nullptr), globalShader(nullptr), deltaTime(0.0f), lastFrame(0.0f),
-      lastX(400.0f), lastY(300.0f), firstMouse(true) {
+    : window(nullptr), globalShader(nullptr), nextEntityID(0), centerpieceID(-1),
+      sharedCubeMesh{0, 0, 0}, sharedCubeTexture(0), deltaTime(0.0f), lastFrame(0.0f),
+      lastX(400.0f), lastY(300.0f), firstMouse(true), spacePressedLastFrame(false) {
 }
+
 
 Engine::~Engine() {
     if (globalShader) {
@@ -38,7 +40,6 @@ bool Engine::Initialize() {
     }
 
     glfwMakeContextCurrent(window);
-
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     glewExperimental = GL_TRUE;
@@ -48,7 +49,6 @@ bool Engine::Initialize() {
     }
 
     glEnable(GL_DEPTH_TEST);
-
     glfwSetKeyCallback(window, Input::keyCallback);
 
     std::string vertCode, fragCode;
@@ -71,17 +71,46 @@ bool Engine::Initialize() {
 
     globalShader = new Shader(vertCode.c_str(), fragCode.c_str());
 
-    Mesh cubeMesh = AssetLoader::loadMesh("models/cube.obj");
-    GLuint cubeTexture = AssetLoader::loadTexture("models/cube.png");
+    sharedCubeMesh = AssetLoader::loadMesh("models/cube.obj");
+    sharedCubeTexture = AssetLoader::loadTexture("models/cube.png");
 
-    entities.push_back(Entity(cubeMesh, Vec3{0.0f, 0.0f, 0.0f}, cubeTexture));
+    // Spawn stable floor grid components
+    for (int x = -3; x <= 3; ++x) {
+        for (int z = -3; z <= 3; ++z) {
+            Vec3 floorPos = Vec3{ static_cast<float>(x * 2.0f), -2.0f, static_cast<float>(z * 2.0f) };
+            Vec3 floorScale = Vec3{ 0.95f, 0.1f, 0.95f };
+            SpawnCube(floorPos, Vec3{0.0f, 0.0f, 0.0f}, floorScale);
+        }
+    }
 
-    // Spin our cube slightly on start to confirm rotation math is active
-    entities[0].rotation = Vec3{0.4f, 0.8f, 0.0f};
+    // Spawn central item block with fixed memory persistence handles
+    Entity* centerCube = SpawnCube(Vec3{0.0f, 0.0f, 0.0f}, Vec3{0.4f, 0.8f, 0.0f}, Vec3{1.0f, 1.0f, 1.0f});
+    if (centerCube) {
+        centerpieceID = centerCube->id;
+    }
 
+    camera.pos = Vec3{0.0f, 0.0f, 5.0f};
     lastFrame = static_cast<float>(glfwGetTime());
-
     return true;
+}
+
+Entity* Engine::SpawnCube(Vec3 position, Vec3 rotation, Vec3 scale) {
+    int id = nextEntityID++;
+    // Directly emplace into map layout to keep pointer addresses locked down permanently
+    auto result = entities.emplace(id, Entity(id, sharedCubeMesh, position, sharedCubeTexture));
+
+    Entity& newCube = result.first->second;
+    newCube.rotation = rotation;
+    newCube.scale = scale;
+    return &newCube;
+}
+
+Entity* Engine::GetEntityByID(int id) {
+    auto it = entities.find(id);
+    if (it != entities.end()) {
+        return &(it->second);
+    }
+    return nullptr;
 }
 
 void Engine::ProcessInput() {
@@ -89,7 +118,7 @@ void Engine::ProcessInput() {
         glfwSetWindowShouldClose(window, true);
     }
 
-    float speedModifier = 2.5f * deltaTime;
+    float speedModifier = 3.5f * deltaTime;
     float forward = 0.0f;
     float right = 0.0f;
 
@@ -99,6 +128,28 @@ void Engine::ProcessInput() {
     if (Input::IsPressed(GLFW_KEY_A)) right -= speedModifier;
 
     camera.Move(forward, right);
+
+    if (Input::IsPressed(GLFW_KEY_SPACE)) {
+        if (!spacePressedLastFrame) {
+            float radYaw = camera.yaw * 0.0174533f;
+            float radPitch = camera.pitch * 0.0174533f;
+
+            Vec3 lookDir;
+            lookDir.x = cos(radYaw) * cos(radPitch);
+            lookDir.y = sin(radPitch);
+            lookDir.z = sin(radYaw) * cos(radPitch);
+
+            Vec3 spawnPos;
+            spawnPos.x = camera.pos.x + lookDir.x * 3.0f;
+            spawnPos.y = camera.pos.y + lookDir.y * 3.0f;
+            spawnPos.z = camera.pos.z + lookDir.z * 3.0f;
+
+            SpawnCube(spawnPos, Vec3{0.0f, 0.0f, 0.0f}, Vec3{0.5f, 0.5f, 0.5f});
+        }
+        spacePressedLastFrame = true;
+    } else {
+        spacePressedLastFrame = false;
+    }
 }
 
 void Engine::HandleMouseInput(double xpos, double ypos) {
@@ -134,21 +185,28 @@ void Engine::Run() {
 
         globalShader->use();
 
+        int width, height;
+        glfwGetFramebufferSize(window, &width, &height);
+        glViewport(0, 0, width, height);
+
+        float aspect = (height > 0) ? (static_cast<float>(width) / static_cast<float>(height)) : 1.0f;
+
         Mat4 view = camera.GetViewMatrix();
-        Mat4 proj = Mat4::Perspective(0.785398f, 800.0f / 600.0f, 0.1f, 100.0f);
+        Mat4 proj = Mat4::Perspective(0.785398f, aspect, 0.1f, 100.0f);
 
         globalShader->setMat4("view", view.m);
         globalShader->setMat4("projection", proj.m);
-
+        globalShader->setVec3("viewPos", camera.pos.x, camera.pos.y, camera.pos.z);
         globalShader->setInt("texture1", 0);
 
-        // Make the cube rotate dynamically in the scene loop over time
-        if(!entities.empty()) {
-            entities[0].rotation.y += 0.5f * deltaTime;
+        Entity* focalCube = GetEntityByID(centerpieceID);
+        if (focalCube) {
+            focalCube->rotation.y += 0.5f * deltaTime;
         }
 
-        for (auto& entity : entities) {
-            entity.Draw(*globalShader);
+        // Loop map elements securely via structured iteration pairs
+        for (auto& pair : entities) {
+            pair.second.Draw(*globalShader);
         }
 
         glfwSwapBuffers(window);

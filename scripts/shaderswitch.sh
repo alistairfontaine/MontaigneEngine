@@ -1,3 +1,4 @@
+cat << 'EOF' > src/shader.frag
 #version 330 core
 
 out vec4 FragColor;
@@ -31,3 +32,4 @@ void main() {
     vec3 finalColor = (ambient + diffuse + specular) * baseMaterialColor;
     FragColor = vec4(finalColor, texColor.a);
 }
+EOF
