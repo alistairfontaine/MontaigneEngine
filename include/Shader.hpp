@@ -6,27 +6,24 @@
 class Shader {
 public:
     GLuint ID;
-    Shader(const char* vSource, const char* fSource) {
-        GLuint vShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vShader, 1, &vSource, NULL);
-        glCompileShader(vShader);
-        GLuint fShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fShader, 1, &fSource, NULL);
-        glCompileShader(fShader);
+    Shader(const char* v, const char* f) {
+        GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(vs, 1, &v, NULL);
+        glCompileShader(vs);
+        GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(fs, 1, &f, NULL);
+        glCompileShader(fs);
         ID = glCreateProgram();
-        glAttachShader(ID, vShader);
-        glAttachShader(ID, fShader);
+        glAttachShader(ID, vs); glAttachShader(ID, fs);
         glLinkProgram(ID);
+        glDeleteShader(vs); glDeleteShader(fs);
     }
     void use() { glUseProgram(ID); }
-    void setMat4(const std::string &name, const float* matrix) const {
-        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, matrix);
+    void setMat4(const std::string& name, const float* val) {
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, val);
     }
-    void setInt(const std::string &name, int value) const {
-        glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
-    }
-    void setVec3(const std::string &name, float x, float y, float z) const {
-        glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
+    void setInt(const std::string& name, int val) {
+        glUniform1i(glGetUniformLocation(ID, name.c_str()), val);
     }
 };
 #endif

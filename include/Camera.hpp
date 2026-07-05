@@ -6,7 +6,6 @@
 struct Camera {
     Vec3 pos = {0, 0, 5};
     float yaw = -90.0f, pitch = 0.0f;
-    float fov = 45.0f;
 
     void Rotate(float dx, float dy) {
         yaw += dx; pitch += dy;
@@ -14,12 +13,24 @@ struct Camera {
     }
 
     void Move(float forward, float right) {
-        pos.x += (cos(yaw * 0.01745f) * forward + sin(yaw * 0.01745f) * right) * 0.1f;
-        pos.z += (sin(yaw * 0.01745f) * forward - cos(yaw * 0.01745f) * right) * 0.1f;
+        float radYaw = yaw * 0.01745f;
+        pos.x += (cos(radYaw) * forward + sin(radYaw) * right) * 0.1f;
+        pos.z += (sin(radYaw) * forward - cos(radYaw) * right) * 0.1f;
     }
 
     Mat4 GetViewMatrix() {
-        return Mat4::Translation(-pos.x, -pos.y, -pos.z);
+        // Calculate the forward vector based on Euler angles
+        Vec3 front;
+        front.x = cos(yaw * 0.01745f) * cos(pitch * 0.01745f);
+        front.y = sin(pitch * 0.01745f);
+        front.z = sin(yaw * 0.01745f) * cos(pitch * 0.01745f);
+
+        // Target is current position + direction
+        Vec3 target = {pos.x + front.x, pos.y + front.y, pos.z + front.z};
+        // Use standard Up vector
+        Vec3 up = {0, 1, 0};
+
+        return Mat4::LookAt(pos, target, up);
     }
 };
 #endif
