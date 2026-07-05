@@ -76,6 +76,9 @@ bool Engine::Initialize() {
 
     entities.push_back(Entity(cubeMesh, Vec3{0.0f, 0.0f, 0.0f}, cubeTexture));
 
+    // Spin our cube slightly on start to confirm rotation math is active
+    entities[0].rotation = Vec3{0.4f, 0.8f, 0.0f};
+
     lastFrame = static_cast<float>(glfwGetTime());
 
     return true;
@@ -137,10 +140,12 @@ void Engine::Run() {
         globalShader->setMat4("view", view.m);
         globalShader->setMat4("projection", proj.m);
 
-        // Pass your custom vector parts to the viewPos uniform
-        globalShader->setVec3("viewPos", camera.pos.x, camera.pos.y, camera.pos.z);
-
         globalShader->setInt("texture1", 0);
+
+        // Make the cube rotate dynamically in the scene loop over time
+        if(!entities.empty()) {
+            entities[0].rotation.y += 0.5f * deltaTime;
+        }
 
         for (auto& entity : entities) {
             entity.Draw(*globalShader);

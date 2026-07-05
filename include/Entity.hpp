@@ -9,17 +9,31 @@
 struct Entity {
     Mesh mesh;
     Vec3 position;
-    GLuint textureID; // Added variable tracking loop to handle material maps
+    Vec3 rotation; // Euler angles in radians (X, Y, Z)
+    Vec3 scale;    // Size dimensions on (X, Y, Z)
+    GLuint textureID;
 
-    Entity(Mesh m, Vec3 pos, GLuint tex) : mesh(m), position(pos), textureID(tex) {}
+    Entity(Mesh m, Vec3 pos, GLuint tex)
+        : mesh(m), position(pos), rotation{0.0f, 0.0f, 0.0f}, scale{1.0f, 1.0f, 1.0f}, textureID(tex) {}
 
     void Draw(Shader& shader) {
         shader.use();
 
-        // Pass position coordinate vectors to shader constants array
-        glUniform4f(glGetUniformLocation(shader.ID, "modelPos"), position.x, position.y, position.z, 1.0f);
+        // 1. Calculate transformation components using our refactored math operators
+        Mat4 translationMatrix = Mat4::Translation(position.x, position.y, position.z);
+        Mat4 scaleMatrix       = Mat4::Scaling(scale.x, scale.y, scale.z);
 
-        // Bind the current entity texture map to texture unit 0
+        Mat4 rotX = Mat4::RotationX(rotation.x);
+        Mat4 rotY = Mat4::RotationY(rotation.y);
+        Mat4 rotZ = Mat4::RotationZ(rotation.z);
+        Mat4 rotationMatrix    = rotZ * rotY * rotX; // Combined Euler rotation sequence
+
+        // 2. Compute final unified Model matrix (TRS order)
+        Mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
+
+        // 3. Upload the unified matrix block to the vertex program
+        shader.setMat4("model", modelMatrix.m);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);
 

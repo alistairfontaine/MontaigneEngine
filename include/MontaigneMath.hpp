@@ -33,43 +33,75 @@ struct Vec3 {
 struct Mat4 {
     float m[16] = {1,0,0,0,  0,1,0,0,  0,0,1,0,  0,0,0,1};
 
+    // Matrix Multiplication Operator (Row-Column Dot Products)
+    Mat4 operator*(const Mat4& o) const {
+        Mat4 res;
+        for (int row = 0; row < 4; ++row) {
+            for (int col = 0; col < 4; ++col) {
+                float sum = 0.0f;
+                for (int i = 0; i < 4; ++i) {
+                    sum += m[row * 4 + i] * o.m[i * 4 + col];
+                }
+                res.m[row * 4 + col] = sum;
+            }
+        }
+        return res;
+    }
+
     static Mat4 Translation(float x, float y, float z) {
         Mat4 res;
         res.m[12] = x; res.m[13] = y; res.m[14] = z;
         return res;
     }
 
+    static Mat4 Scaling(float x, float y, float z) {
+        Mat4 res;
+        res.m[0] = x;
+        res.m[5] = y;
+        res.m[10] = z;
+        return res;
+    }
+
+    static Mat4 RotationX(float angleRad) {
+        Mat4 res;
+        float c = std::cos(angleRad);
+        float s = std::sin(angleRad);
+        res.m[5] = c;  res.m[6] = s;
+        res.m[9] = -s; res.m[10] = c;
+        return res;
+    }
+
+    static Mat4 RotationY(float angleRad) {
+        Mat4 res;
+        float c = std::cos(angleRad);
+        float s = std::sin(angleRad);
+        res.m[0] = c;  res.m[2] = -s;
+        res.m[8] = s;  res.m[10] = c;
+        return res;
+    }
+
+    static Mat4 RotationZ(float angleRad) {
+        Mat4 res;
+        float c = std::cos(angleRad);
+        float s = std::sin(angleRad);
+        res.m[0] = c;  res.m[1] = s;
+        res.m[4] = -s; res.m[5] = c;
+        return res;
+    }
+
     static Mat4 LookAt(Vec3 pos, Vec3 target, Vec3 up) {
-        // Calculate camera coordinate system axis vectors
-        Vec3 f = Vec3::Normalize(target - pos);      // Forward vector
-        Vec3 s = Vec3::Normalize(Vec3::Cross(f, up)); // Right vector
-        Vec3 u = Vec3::Cross(s, f);                  // True Up vector
+        Vec3 f = Vec3::Normalize(target - pos);
+        Vec3 s = Vec3::Normalize(Vec3::Cross(f, up));
+        Vec3 u = Vec3::Cross(s, f);
 
         Mat4 res;
-        // First Column (X-axis basis)
-        res.m[0] = s.x;
-        res.m[1] = u.x;
-        res.m[2] = -f.x;
-        res.m[3] = 0.0f;
-
-        // Second Column (Y-axis basis)
-        res.m[4] = s.y;
-        res.m[5] = u.y;
-        res.m[6] = -f.y;
-        res.m[7] = 0.0f;
-
-        // Third Column (Z-axis basis)
-        res.m[8] = s.z;
-        res.m[9] = u.z;
-        res.m[10] = -f.z;
-        res.m[11] = 0.0f;
-
-        // Fourth Column (Translation components combined with rotation orientation)
+        res.m[0] = s.x;  res.m[1] = u.x;  res.m[2] = -f.x;  res.m[3] = 0.0f;
+        res.m[4] = s.y;  res.m[5] = u.y;  res.m[6] = -f.y;  res.m[7] = 0.0f;
+        res.m[8] = s.z;  res.m[9] = u.z;  res.m[10] = -f.z; res.m[11] = 0.0f;
         res.m[12] = -Vec3::Dot(s, pos);
         res.m[13] = -Vec3::Dot(u, pos);
         res.m[14] =  Vec3::Dot(f, pos);
         res.m[15] = 1.0f;
-
         return res;
     }
 
@@ -81,7 +113,7 @@ struct Mat4 {
         res.m[10] = (far + near) / (near - far);
         res.m[11] = -1.0f;
         res.m[14] = (2.0f * far * near) / (near - far);
-        res.m[15] = 0.0f; // Standard perspective requirement for W component division
+        res.m[15] = 0.0f;
         return res;
     }
 };
