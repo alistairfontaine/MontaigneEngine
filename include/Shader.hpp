@@ -10,13 +10,18 @@ public:
         GLuint vs = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vs, 1, &v, NULL);
         glCompileShader(vs);
+
         GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(fs, 1, &f, NULL);
         glCompileShader(fs);
+
         ID = glCreateProgram();
-        glAttachShader(ID, vs); glAttachShader(ID, fs);
+        glAttachShader(ID, vs);
+        glAttachShader(ID, fs);
         glLinkProgram(ID);
-        glDeleteShader(vs); glDeleteShader(fs);
+
+        glDeleteShader(vs);
+        glDeleteShader(fs);
     }
     void use() { glUseProgram(ID); }
     void setMat4(const std::string& name, const float* val) {
