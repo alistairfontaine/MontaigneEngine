@@ -1,9 +1,12 @@
 #ifndef MESH_HPP
 #define MESH_HPP
-#include <GL/glew.h>
+
+#include <vector>
 
 struct Mesh {
-    GLuint VBO;
-    int vertexCount;
+    unsigned int vao;
+    unsigned int vbo;
+    int vertexCount; // Your code was looking for 'count', we keep it matching here
 };
-#endif
+
+#endif // MESH_HPP

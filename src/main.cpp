@@ -1,17 +1,27 @@
-#include "../include/Engine.hpp"
-#include "../include/Input.hpp"
+#include "Engine.hpp"
+#include <iostream>
 
-Engine* enginePtr;
-void mouseCallback(GLFWwindow* w, double x, double y) {
-    (void)w;
-    enginePtr->cam.Rotate((float)x * 0.1f, (float)-y * 0.1f);
+Engine* enginePtr = nullptr;
+
+void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+    (void)window;
+    if (enginePtr) {
+        enginePtr->HandleMouseInput(xpos, ypos);
+    }
 }
 
 int main() {
     Engine engine;
     enginePtr = &engine;
+
+    if (!engine.Initialize()) {
+        std::cerr << "Critical Error: Failed to initiate MontaigneEngine context." << std::endl;
+        return -1;
+    }
+
     glfwSetCursorPosCallback(engine.window, mouseCallback);
-    glfwSetKeyCallback(engine.window, Input::keyCallback);
+
     engine.Run();
+
     return 0;
 }
