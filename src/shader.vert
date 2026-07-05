@@ -13,13 +13,11 @@ uniform mat4 view;
 uniform mat4 projection;
 
 void main() {
-    // Structural positions in complete world coordinates
+    // Normal classical world coordinate translations
     FragPos = vec3(model * vec4(aPos, 1.0));
-
-    // Normal direction adjustments scaled safely against transformations
     Normal = mat3(transpose(inverse(model))) * aNormal;
 
-    // Standard core projection transformation chain
+    // Traditional multiplication configuration order: Projection * View * Model * Position
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 
     TexCoord = aTexCoord;

@@ -9,6 +9,14 @@ struct Vec3 {
         return {x - o.x, y - o.y, z - o.z};
     }
 
+    Vec3 operator+(const Vec3& o) const {
+        return {x + o.x, y + o.y, z + o.z};
+    }
+
+    Vec3 operator*(float scalar) const {
+        return {x * scalar, y * scalar, z * scalar};
+    }
+
     static Vec3 Normalize(Vec3 v) {
         float len = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
         if (len > 0.0f) {
@@ -33,7 +41,7 @@ struct Vec3 {
 struct Mat4 {
     float m[16] = {1,0,0,0,  0,1,0,0,  0,0,1,0,  0,0,0,1};
 
-    // Matrix Multiplication Operator (Row-Column Dot Products)
+    // Your original, 100% working multi-dimensional row multiplication layout
     Mat4 operator*(const Mat4& o) const {
         Mat4 res;
         for (int row = 0; row < 4; ++row) {
@@ -66,8 +74,8 @@ struct Mat4 {
         Mat4 res;
         float c = std::cos(angleRad);
         float s = std::sin(angleRad);
-        res.m[5] = c;  res.m[6] = s;
-        res.m[9] = -s; res.m[10] = c;
+        res.m[5] = c;   res.m[6] = s;
+        res.m[9] = -s;  res.m[10] = c;
         return res;
     }
 
@@ -75,8 +83,8 @@ struct Mat4 {
         Mat4 res;
         float c = std::cos(angleRad);
         float s = std::sin(angleRad);
-        res.m[0] = c;  res.m[2] = -s;
-        res.m[8] = s;  res.m[10] = c;
+        res.m[0] = c;   res.m[2] = -s;
+        res.m[8] = s;   res.m[10] = c;
         return res;
     }
 
@@ -84,8 +92,8 @@ struct Mat4 {
         Mat4 res;
         float c = std::cos(angleRad);
         float s = std::sin(angleRad);
-        res.m[0] = c;  res.m[1] = s;
-        res.m[4] = -s; res.m[5] = c;
+        res.m[0] = c;   res.m[1] = s;
+        res.m[4] = -s;  res.m[5] = c;
         return res;
     }
 
@@ -95,25 +103,24 @@ struct Mat4 {
         Vec3 u = Vec3::Cross(s, f);
 
         Mat4 res;
-        res.m[0] = s.x;  res.m[1] = u.x;  res.m[2] = -f.x;  res.m[3] = 0.0f;
-        res.m[4] = s.y;  res.m[5] = u.y;  res.m[6] = -f.y;  res.m[7] = 0.0f;
-        res.m[8] = s.z;  res.m[9] = u.z;  res.m[10] = -f.z; res.m[11] = 0.0f;
-        res.m[12] = -Vec3::Dot(s, pos);
-        res.m[13] = -Vec3::Dot(u, pos);
-        res.m[14] =  Vec3::Dot(f, pos);
-        res.m[15] = 1.0f;
+        res.m[0] = s.x;  res.m[4] = s.y;  res.m[8] = s.z;   res.m[12] = -Vec3::Dot(s, pos);
+        res.m[1] = u.x;  res.m[5] = u.y;  res.m[9] = u.z;   res.m[13] = -Vec3::Dot(u, pos);
+        res.m[2] = -f.x; res.m[6] = -f.y; res.m[10] = -f.z; res.m[14] =  Vec3::Dot(f, pos);
+        res.m[3] = 0.0f; res.m[7] = 0.0f; res.m[11] = 0.0f; res.m[15] = 1.0f;
         return res;
     }
 
     static Mat4 Perspective(float fov, float aspect, float near, float far) {
         Mat4 res;
-        float f = 1.0f / tan(fov / 2.0f);
+        for(int i = 0; i < 16; ++i) res.m[i] = 0.0f;
+
+        float f = 1.0f / std::tan(fov / 2.0f);
+
         res.m[0] = f / aspect;
         res.m[5] = f;
         res.m[10] = (far + near) / (near - far);
         res.m[11] = -1.0f;
         res.m[14] = (2.0f * far * near) / (near - far);
-        res.m[15] = 0.0f;
         return res;
     }
 };

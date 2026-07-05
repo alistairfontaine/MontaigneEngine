@@ -14,15 +14,22 @@ public:
     Shader* globalShader;
     std::vector<Entity> entities;
 
-    // Core camera and timing states
+    // Global shared graphics resource registers
+    Mesh sharedCubeMesh;
+    GLuint sharedCubeTexture;
+
+    // Core timing tracking configurations
     Camera camera;
     float deltaTime;
     float lastFrame;
 
-    // Mouse movement states
+    // Peripheral tracking records
     double lastX;
     double lastY;
     bool firstMouse;
+
+    // Track state to prevent a single tap from spawning 100 cubes per second
+    bool spacePressedLastFrame;
 
     Engine();
     ~Engine();
@@ -31,6 +38,7 @@ public:
     void Run();
     void ProcessInput();
     void HandleMouseInput(double xpos, double ypos);
+    void SpawnCube(Vec3 position, Vec3 rotation, Vec3 scale);
 };
 
 #endif // ENGINE_HPP
