@@ -9,24 +9,17 @@ struct Entity {
     Entity(Mesh m, Vec3 pos, float s) : mesh(m), position(pos), speed(s) {}
 
     void Update() {
-        // Gravity accelerates the velocity downwards
         velocity -= 0.002f;
         position.y += velocity;
-
-        // Floor Collision (The "Hell" fix)
-        // If the cube hits y = -2.0, stop falling and lock it there
-        if (position.y < -2.0f) {
-            position.y = -2.0f;
-            velocity = 0.0f;
-        }
+        if (position.y < -2.0f) { position.y = -2.0f; velocity = 0.0f; }
     }
 
     void Draw(Shader& shader) {
-        // Apply the transformation to the shader
         Mat4 model = Mat4::Translation(position.x, position.y, position.z);
         shader.setMat4("model", model.m);
 
         glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
+        // Using 5 floats: 3 for Position, 2 for TexCoords
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));

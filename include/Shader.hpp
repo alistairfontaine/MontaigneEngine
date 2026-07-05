@@ -25,5 +25,8 @@ public:
     void setInt(const std::string &name, int value) const {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
     }
+    void setVec3(const std::string &name, float x, float y, float z) const {
+        glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
+    }
 };
 #endif
