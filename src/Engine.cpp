@@ -8,8 +8,9 @@
 Engine::Engine()
     : window(nullptr), globalShader(nullptr), nextEntityID(0), centerpieceID(-1),
       sharedCubeMesh{0, 0, 0}, sharedCubeTexture(0), deltaTime(0.0f), lastFrame(0.0f),
-      lastX(400.0f), lastY(300.0f), firstMouse(true), spacePressedLastFrame(false) {
+      lastX(400.0f), lastY(300.0f), firstMouse(true), verticalVelocity(0.0f), isGrounded(false) {
 }
+
 
 
 Engine::~Engine() {
@@ -118,7 +119,8 @@ void Engine::ProcessInput() {
         glfwSetWindowShouldClose(window, true);
     }
 
-    float speedModifier = 3.5f * deltaTime;
+    // Adjusting speed to feel smooth and responsive when multiplied inside your camera move loops
+    float speedModifier = 25.0f * deltaTime;
     float forward = 0.0f;
     float right = 0.0f;
 
@@ -129,28 +131,32 @@ void Engine::ProcessInput() {
 
     camera.Move(forward, right);
 
-    if (Input::IsPressed(GLFW_KEY_SPACE)) {
-        if (!spacePressedLastFrame) {
+    // Dynamic vertical impulse force jump mechanic
+    if (Input::IsPressed(GLFW_KEY_SPACE) && isGrounded) {
+        verticalVelocity = 4.5f;
+        isGrounded = false;
+    }
+
+    // Secondary cube particle spawner safely re-routed onto your 'E' key
+    static bool ePressedLastFrame = false;
+    if (Input::IsPressed(GLFW_KEY_E)) {
+        if (!ePressedLastFrame) {
             float radYaw = camera.yaw * 0.0174533f;
             float radPitch = camera.pitch * 0.0174533f;
-
             Vec3 lookDir;
             lookDir.x = cos(radYaw) * cos(radPitch);
             lookDir.y = sin(radPitch);
             lookDir.z = sin(radYaw) * cos(radPitch);
 
-            Vec3 spawnPos;
-            spawnPos.x = camera.pos.x + lookDir.x * 3.0f;
-            spawnPos.y = camera.pos.y + lookDir.y * 3.0f;
-            spawnPos.z = camera.pos.z + lookDir.z * 3.0f;
-
+            Vec3 spawnPos = camera.pos + (lookDir * 3.0f);
             SpawnCube(spawnPos, Vec3{0.0f, 0.0f, 0.0f}, Vec3{0.5f, 0.5f, 0.5f});
         }
-        spacePressedLastFrame = true;
+        ePressedLastFrame = true;
     } else {
-        spacePressedLastFrame = false;
+        ePressedLastFrame = false;
     }
 }
+
 
 void Engine::HandleMouseInput(double xpos, double ypos) {
     if (firstMouse) {

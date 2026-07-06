@@ -29,7 +29,11 @@ public:
     double lastX;
     double lastY;
     bool firstMouse;
-    bool spacePressedLastFrame;
+
+    // Unified Physical State declarations
+    float verticalVelocity;
+    bool isGrounded;
+
 
     Engine();
     ~Engine();
