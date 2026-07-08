@@ -2,13 +2,19 @@
 #define MONTAIGNE_ASSETLOADER_HPP
 
 #include "Mesh.hpp"
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
 #include <string>
 #include <vector>
-#include <fstream>
-#include <sstream>
+#include <fstream>   // Core file stream library
+#include <sstream>   // Core string stream library
 #include <iostream>
+#include <GL/glew.h>
+
+// Guard stbi inside its own global lookup scope to fix the name collision block
+#ifndef STBI_INCLUDE_LINE
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+#endif // Close the inner STBI guard block cleanly
+
 
 struct ObjVertex { float x, y, z; };
 struct ObjTexCoord { float u, v; };
@@ -183,4 +189,5 @@ public:
     }
 };
 
-#endif
+#endif // MONTAIGNE_ASSETLOADER_HPP
+

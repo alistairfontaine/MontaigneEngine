@@ -1,13 +1,14 @@
+#include "AssetLoader.hpp" // Load asset systems globally first
 #include "Engine.hpp"
-#include "AssetLoader.hpp"
 #include "Input.hpp"
+#include "Collision.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 
 Engine::Engine()
     : window(nullptr), globalShader(nullptr), nextEntityID(0), centerpieceID(-1),
-      sharedCubeMesh{0, 0, 0}, sharedCubeTexture(0), deltaTime(0.0f), lastFrame(0.0f),
+      sharedCubeMesh{0, 0, 0}, sharedCubeTexture(0), sharedFloorTexture(0), deltaTime(0.0f), lastFrame(0.0f),
       lastX(400.0f), lastY(300.0f), firstMouse(true), verticalVelocity(0.0f), isGrounded(false) {
 }
 
@@ -75,17 +76,21 @@ bool Engine::Initialize() {
     sharedCubeMesh = AssetLoader::loadMesh("models/cube.obj");
     sharedCubeTexture = AssetLoader::loadTexture("models/cube.png");
 
-    // Spawn stable floor grid components
+    // Load your distinct floor tile texture asset map
+    sharedFloorTexture = AssetLoader::loadTexture("models/floor.png");
+
+    // Build stable 7x7 structural floor tile map using the dedicated floor texture
     for (int x = -3; x <= 3; ++x) {
         for (int z = -3; z <= 3; ++z) {
             Vec3 floorPos = Vec3{ static_cast<float>(x * 2.0f), -2.0f, static_cast<float>(z * 2.0f) };
             Vec3 floorScale = Vec3{ 0.95f, 0.1f, 0.95f };
-            SpawnCube(floorPos, Vec3{0.0f, 0.0f, 0.0f}, floorScale);
+            SpawnCube(floorPos, Vec3{0.0f, 0.0f, 0.0f}, floorScale, sharedFloorTexture);
         }
     }
 
-    // Spawn central item block with fixed memory persistence handles
-    Entity* centerCube = SpawnCube(Vec3{0.0f, 0.0f, 0.0f}, Vec3{0.4f, 0.8f, 0.0f}, Vec3{1.0f, 1.0f, 1.0f});
+    // Main centerpiece retains your red-and-black skull texture
+    Entity* centerCube = SpawnCube(Vec3{0.0f, 0.0f, 0.0f}, Vec3{0.4f, 0.8f, 0.0f}, Vec3{1.0f, 1.0f, 1.0f}, sharedCubeTexture);
+
     if (centerCube) {
         centerpieceID = centerCube->id;
     }
@@ -95,10 +100,10 @@ bool Engine::Initialize() {
     return true;
 }
 
-Entity* Engine::SpawnCube(Vec3 position, Vec3 rotation, Vec3 scale) {
+Entity* Engine::SpawnCube(Vec3 position, Vec3 rotation, Vec3 scale, GLuint customTexture) {
     int id = nextEntityID++;
-    // Directly emplace into map layout to keep pointer addresses locked down permanently
-    auto result = entities.emplace(id, Entity(id, sharedCubeMesh, position, sharedCubeTexture));
+    // Kept your exact emplace logic, only swapping the trailing variable parameter
+    auto result = entities.emplace(id, Entity(id, sharedCubeMesh, position, customTexture));
 
     Entity& newCube = result.first->second;
     newCube.rotation = rotation;
@@ -149,7 +154,8 @@ void Engine::ProcessInput() {
             lookDir.z = sin(radYaw) * cos(radPitch);
 
             Vec3 spawnPos = camera.pos + (lookDir * 3.0f);
-            SpawnCube(spawnPos, Vec3{0.0f, 0.0f, 0.0f}, Vec3{0.5f, 0.5f, 0.5f});
+            SpawnCube(spawnPos, Vec3{0.0f, 0.0f, 0.0f}, Vec3{0.5f, 0.5f, 0.5f}, sharedCubeTexture);
+
         }
         ePressedLastFrame = true;
     } else {

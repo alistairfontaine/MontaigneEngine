@@ -3,17 +3,19 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <map> // Swapped to map for memory stability
-#include "Entity.hpp"
+#include <map>
+#include <string>
+#include <vector>
+
 #include "Shader.hpp"
 #include "Camera.hpp"
+#include "Entity.hpp"
 
 class Engine {
 public:
     GLFWwindow* window;
     Shader* globalShader;
 
-    // Stable scene graph lookup container
     std::map<int, Entity> entities;
 
     int nextEntityID;
@@ -21,6 +23,7 @@ public:
 
     Mesh sharedCubeMesh;
     GLuint sharedCubeTexture;
+    GLuint sharedFloorTexture;
 
     Camera camera;
     float deltaTime;
@@ -30,10 +33,8 @@ public:
     double lastY;
     bool firstMouse;
 
-    // Unified Physical State declarations
     float verticalVelocity;
     bool isGrounded;
-
 
     Engine();
     ~Engine();
@@ -43,7 +44,7 @@ public:
     void ProcessInput();
     void HandleMouseInput(double xpos, double ypos);
 
-    Entity* SpawnCube(Vec3 position, Vec3 rotation, Vec3 scale);
+    Entity* SpawnCube(Vec3 position, Vec3 rotation, Vec3 scale, GLuint customTexture);
     Entity* GetEntityByID(int id);
 };
 
