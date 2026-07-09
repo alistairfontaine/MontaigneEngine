@@ -15,8 +15,13 @@ struct Entity {
     Vec3 scale;
     GLuint textureID;
 
+    // Independent low-level physical state tracking variables
+    Vec3 velocity;
+    bool isGrounded;
+
     Entity(int uniqueID, Mesh m, Vec3 pos, GLuint tex)
-        : id(uniqueID), mesh(m), position(pos), rotation{0.0f, 0.0f, 0.0f}, scale{1.0f, 1.0f, 1.0f}, textureID(tex) {}
+        : id(uniqueID), mesh(m), position(pos), rotation{0.0f, 0.0f, 0.0f}, scale{1.0f, 1.0f, 1.0f}, textureID(tex),
+          velocity{0.0f, 0.0f, 0.0f}, isGrounded(false) {}
 
     // Computes bounding volume extents from center-point translations
     AABB GetBoundingBox() const {

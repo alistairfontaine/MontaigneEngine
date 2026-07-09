@@ -192,6 +192,38 @@ void Engine::Run() {
 
         ProcessInput();
 
+        // --- PHASE E: GUARDED SPAWNED OBJECT KINEMATICS ---
+        float gravity = -9.81f;
+
+        // Process gravity and mutual stacking checks ONLY for newly spawned cubes
+        for (auto& pair : entities) {
+            Entity& currentEntity = pair.second;
+
+            // Failsafe condition check: Lock floor slabs (0-48) and center cube firmly in place
+            if (currentEntity.id <= centerpieceID) {
+                continue;
+            }
+
+            // Apply acceleration velocities strictly to the custom box instances
+            currentEntity.velocity.y += gravity * deltaTime;
+            currentEntity.position.y += currentEntity.velocity.y * deltaTime;
+
+            AABB currentBox = currentEntity.GetBoundingBox();
+            for (const auto& otherPair : entities) {
+                const Entity& otherEntity = otherPair.second;
+                if (currentEntity.id == otherEntity.id) continue;
+
+                AABB otherBox = otherEntity.GetBoundingBox();
+                if (AABB::CheckIntersection(currentBox, otherBox)) {
+                    if (currentEntity.position.y > otherEntity.position.y) {
+                        currentEntity.position.y = otherBox.maxBounds.y + currentEntity.scale.y;
+                        currentEntity.velocity.y = 0.0f;
+                    }
+                }
+            }
+        }
+
+        // PRESERVED VERBATIM: Your original working player movement physics loop
         camera.pos.y -= 4.0f * deltaTime;
         AABB playerBox;
         playerBox.minBounds = Vec3{ camera.pos.x - 0.25f, camera.pos.y - 1.25f, camera.pos.z - 0.25f };
@@ -204,6 +236,7 @@ void Engine::Run() {
                 }
             }
         }
+        // --------------------------------------------------
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
