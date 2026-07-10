@@ -10,6 +10,7 @@
 #include "Shader.hpp"
 #include "Camera.hpp"
 #include "Entity.hpp"
+#include "SpatialGrid.hpp"  // Integrated spatial partitioner header blueprint
 
 class Engine {
 public:
@@ -25,7 +26,10 @@ public:
     GLuint sharedCubeTexture;
     GLuint sharedFloorTexture;
 
+    SpatialGrid spatialGrid; // Instantiated spatial mapping object layer
+
     Camera camera;
+
     float deltaTime;
     float lastFrame;
 
