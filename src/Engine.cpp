@@ -191,9 +191,11 @@ void Engine::Run() {
         lastFrame = currentFrame;
 
         ProcessInput();
-
-        // --- PHASE F: BROAD-PHASE SPATIAL PARTITIONING ACCELERATION CONTROL ---
+        // --- PHASE G: BROAD-PHASE SPATIAL ACCELERATION & GARBAGE COLLECTION ---
         float gravity = -9.81f;
+
+        // Track dead block IDs to purge safely from memory without breaking iterator loops
+        std::vector<int> deadEntityIDs;
 
         // Reset and clear your virtual spatial cell tracking grid tables for the current frame thread
         spatialGrid.Clear();
@@ -207,6 +209,15 @@ void Engine::Run() {
 
             // Failsafe condition check: Lock floor slabs and center cube firmly in place
             if (currentEntity.id <= centerpieceID) {
+                continue;
+            }
+
+            // Increment the lifespan clock on your spawned cubes
+            currentEntity.lifetime += deltaTime;
+
+            // Mark for deletion if it falls off into the underworld or expires its clock
+            if (currentEntity.position.y < -20.0f || currentEntity.lifetime > 10.0f) {
+                deadEntityIDs.push_back(currentEntity.id);
                 continue;
             }
 
@@ -242,7 +253,13 @@ void Engine::Run() {
                 }
             }
         }
-        // --------------------------------------------------
+
+        // SAFE RUNTIME SWEEPER CYCLE: Purge dead structures out of memory cells completely
+        for (int id : deadEntityIDs) {
+            entities.erase(id);
+        }
+        // -----------------------------------------------------------------
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
