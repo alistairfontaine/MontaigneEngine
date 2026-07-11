@@ -73,4 +73,3 @@ g++ -std=c++20 -Wall -Wextra -Iinclude -c src/Engine.cpp -o src/Engine.o && g++ 
 sudo apt-get update
 sudo apt-get install build-essential libglfw3-dev libglew-dev libgl1-mesa-dev
 ```
-Compilation Code: g++ -std=c++20 -Wall -Wextra -Iinclude -c src/Engine.cpp -o src/Engine.o && g++ -std=c++20 -Wall -Wextra -Iinclude -c src/main.cpp -o src/main.o && g++ src/Engine.o src/main.o -o bin/montaigne -lGL -lglfw -lGLEW && ./bin/montaigne
