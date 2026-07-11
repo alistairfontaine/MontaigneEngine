@@ -11,5 +11,10 @@ struct Input {
         else if (action == GLFW_RELEASE) keys[key] = false;
     }
     static bool IsPressed(int key) { return keys[key]; }
+
+    // Safe low-level mouse button interaction hook
+    static bool IsMouseButtonPressed(GLFWwindow* window, int button) {
+        return glfwGetMouseButton(window, button) == GLFW_PRESS;
+    }
 };
 #endif

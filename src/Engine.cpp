@@ -161,7 +161,47 @@ void Engine::ProcessInput() {
     } else {
         ePressedLastFrame = false;
     }
+
+    // Surgical Step 4: Add ray distance stepping sequence
+    static bool mousePressedLastFrame = false;
+    if (Input::IsMouseButtonPressed(window, GLFW_MOUSE_BUTTON_LEFT)) {
+        if (!mousePressedLastFrame) {
+            float radYaw = camera.yaw * 0.0174533f;
+            float radPitch = camera.pitch * 0.0174533f;
+
+            Vec3 rayDir;
+            rayDir.x = cos(radYaw) * cos(radPitch);
+            rayDir.y = sin(radPitch);
+            rayDir.z = sin(radYaw) * cos(radPitch);
+
+            Vec3 normRayDir = Vec3::Normalize(rayDir);
+
+            float maxRayDistance = 20.0f;
+            float stepSize = 0.1f;
+            bool hitFound = false;
+            int targetDeleteID = -1;
+
+            Vec3 finalPoint = camera.pos;
+
+            // Precision Single-Line Checking Chip
+            for (float dist = 0.5f; dist < maxRayDistance; dist += stepSize) {
+                finalPoint = camera.pos + (normRayDir * dist);
+                for (auto& p : entities) { if (p.second.id > centerpieceID) { AABB b = p.second.GetBoundingBox(); if (finalPoint.x >= b.minBounds.x && finalPoint.x <= b.maxBounds.x && finalPoint.y >= b.minBounds.y && finalPoint.y <= b.maxBounds.y && finalPoint.z >= b.minBounds.z && finalPoint.z <= b.maxBounds.z) { targetDeleteID = p.second.id; hitFound = true; break; } } }
+                if (hitFound) break;
+            }
+
+            if (hitFound && targetDeleteID != -1) {
+                entities.erase(targetDeleteID);
+                std::cout << "[Raycaster] Object Destroyed! ID: " << targetDeleteID << std::endl;
+            }
+
+        }
+        mousePressedLastFrame = true;
+    } else {
+        mousePressedLastFrame = false;
+    }
 }
+
 
 
 void Engine::HandleMouseInput(double xpos, double ypos) {
