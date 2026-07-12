@@ -147,9 +147,27 @@ void Engine::ProcessInput() {
     if (Input::IsPressed(GLFW_KEY_D)) right += speedModifier;
     if (Input::IsPressed(GLFW_KEY_A)) right -= speedModifier;
 
+    // Phase Q: Physical Player Clipping Failsafe Logic
+    Vec3 oldCamPos = camera.pos;
     camera.Move(forward, right);
 
+    // Create a physical bounding box for the player around the new camera coordinates
+    AABB playerBox;
+    playerBox.minBounds = Vec3{ camera.pos.x - 0.3f, camera.pos.y - 1.5f, camera.pos.z - 0.3f };
+    playerBox.maxBounds = Vec3{ camera.pos.x + 0.3f, camera.pos.y + 0.2f, camera.pos.z + 0.3f };
+
+    // Rapidly query the spatial cells your player is currently standing inside
+    std::vector<Entity*> nearCubes = spatialGrid.GetEntitiesAtPosition(camera.pos);
+    for (Entity* e : nearCubes) {
+        AABB blockBox = e->GetBoundingBox();
+        if (AABB::CheckIntersection(playerBox, blockBox)) {
+            camera.pos = oldCamPos; // Hard-clip: Push the player back out to their previous safe spot
+            break;
+        }
+    }
+
     // Dynamic vertical impulse force jump mechanic
+
     if (Input::IsPressed(GLFW_KEY_SPACE) && isGrounded) {
         verticalVelocity = 4.5f;
         isGrounded = false;
