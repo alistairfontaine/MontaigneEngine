@@ -81,7 +81,11 @@ bool Engine::Initialize() {
     // Load your distinct floor tile texture asset map
     sharedFloorTexture = AssetLoader::loadTexture("models/floor.png");
 
+    // Phase M: Initialize default building hotbar selection
+    activeBuildTexture = sharedCubeTexture;
+
     // Build stable 7x7 structural floor tile map using the dedicated floor texture
+
     for (int x = -3; x <= 3; ++x) {
         for (int z = -3; z <= 3; ++z) {
             Vec3 floorPos = Vec3{ static_cast<float>(x * 2.0f), -2.0f, static_cast<float>(z * 2.0f) };
@@ -185,7 +189,16 @@ void Engine::ProcessInput() {
         lPressedLastFrame = false;
     }
 
+    // Phase M: Real-time Hotbar Inventory Texture Material Swapping
+    if (Input::IsPressed(GLFW_KEY_1)) {
+        activeBuildTexture = sharedCubeTexture;
+    }
+    if (Input::IsPressed(GLFW_KEY_2)) {
+        activeBuildTexture = sharedFloorTexture;
+    }
+
     // --- PHASES H & J: ACCELERATED RAYCAST PICKING & VISUAL TRAIL VECTOR CAPTURE ---
+
     static bool mousePressedLastFrame = false;
 
     if (Input::IsMouseButtonPressed(window, GLFW_MOUSE_BUTTON_LEFT)) {
@@ -277,8 +290,10 @@ void Engine::ProcessInput() {
                         buildPos.y = e->position.y + spawnOffset.y;
                         buildPos.z = e->position.z + spawnOffset.z;
 
-                        SpawnCube(buildPos, Vec3{0.0f, 0.0f, 0.0f}, Vec3{0.5f, 0.5f, 0.5f}, sharedCubeTexture);
+                        // Modified: Uses the currently selected active building material hotbar container texture
+                        SpawnCube(buildPos, Vec3{0.0f, 0.0f, 0.0f}, Vec3{0.5f, 0.5f, 0.5f}, activeBuildTexture);
                         std::cout << "[Voxel Builder] New block snapped flush onto grid arrays!" << std::endl;
+
 
                         hitFound = true;
                         break;

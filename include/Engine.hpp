@@ -25,8 +25,10 @@ public:
     Mesh sharedCubeMesh;
     GLuint sharedCubeTexture;
     GLuint sharedFloorTexture;
+    GLuint activeBuildTexture; // Phase M: Active hotbar building material container
 
     SpatialGrid spatialGrid; // Instantiated spatial mapping object layer
+
 
     Camera camera;
 
