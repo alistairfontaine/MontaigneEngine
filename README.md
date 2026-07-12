@@ -6,7 +6,7 @@ Montaigne Engine is a custom, low-level 3D sandbox engine written from scratch i
 If the runtime ever scrambles, matrix calculations collapse, or unexpected memory errors try to freeze your workspace, execute this exact unbroken production pipeline string directly inside your Linux shell terminal to force a clean cache swap, link the graphics binaries, and deploy the safe engine baseline:
 
 ```bash
-g++ -std=c++20 -Wall -Wextra -Iinclude -c src/Engine.cpp -o src/Engine.o && g++ -std=c++20 -Wall -Wextra -Iinclude -c src/main.cpp -o src/main.o && g++ src/Engine.o src/main.o -o bin/montaigne -lGL -lglfw -lGLEW && ./bin/montaigne
+export DISPLAY=:0 && g++ -std=c++20 -Wall -Wextra -Iinclude -c src/Engine.cpp -o src/Engine.o && g++ -std=c++20 -Wall -Wextra -Iinclude -c src/main.cpp -o src/main.o && g++ src/Engine.o src/main.o -o bin/montaigne -lGL -lglfw -lGLEW && ./bin/montaigne
 ```
 
 ---
@@ -27,8 +27,10 @@ g++ -std=c++20 -Wall -Wextra -Iinclude -c src/Engine.cpp -o src/Engine.o && g++ 
 - **Broad-Phase Spatial Partitioning Grid Cell Mapping:** Cuts down intersection workloads from heavy brute-force loops ($O(N^2)$ complexity) down to local constant cell checks ($O(N)$ efficiency) by partitioning entities inside independent 3D virtual coordinate sectors.
 - **Dynamic Runtime Memory Garbage Collection Swapper:** Clean memory hygiene routines that monitor entity lifecycles. Spawned items that exist past their lifespans or slide into the underworld void are safely `.erase()` extracted out of the active tracking map arrays to prevent memory leaks and dangling pointers.
 
-### 4. Interactive Target Deletion Loop
-- **3D Raycast Vector Laser Sweeper Pass:** Tracks click commands natively on the GPU thread. Steps an invisible sampling point out up to 20 meters along the camera look vector direction using fine-tuned linear transformations to locate, identify, and destroy dynamic blocks instantly on impact lock.
+### 4. Interactive Target Deletion & Placement Loops
+- **Spatial Grid Assisted Raycast Intersector:** Steps an invisible sampling point out along the camera look vector. Queries your active `spatialGrid` maps dynamically to run bounding box checks *only* inside the specific virtual room coordinates the ray physically passes through.
+- **Real-time Raycast 3D Visual Debugger Trail Particles:** Captures the laser's coordinates in a frame vector array and draws a bright string of textured tracer dots across the camera sightline on click.
+- **Structural Sandbox Voxel Block Placement Engine:** Uses advanced 3D axis delta analysis to pinpoint exactly which side of a box your crosshair is touching, instantly snapping a new structural block flush against that surface on right-click.
 
 ---
 
@@ -37,8 +39,9 @@ g++ -std=c++20 -Wall -Wextra -Iinclude -c src/Engine.cpp -o src/Engine.o && g++ 
 - **`W` / `A` / `S` / `D`:** Smooth first-person camera-relative grid navigation.
 - **`Spacebar`:** Upward vertical velocity jump impulse force.
 - **`Mouse Look`:** Absolute high-sensitivity pitch/yaw rotation view vectors.
-- **`E` Key:** Generate falling skull block particle instances right ahead of your gaze.
-- **`Left Mouse Button (LMB)`:** Fires an interactive raycast picker laser to blast custom blocks out of memory.
+- **`E` Key:** Generate a falling skull block instance right ahead of your gaze.
+- **`Left Mouse Button (LMB)`:** Fires an optimized raycast picker laser to blast custom blocks out of memory.
+- **`Right Mouse Button (RMB)`:** Extrudes new voxel blocks perfectly flush against target faces.
 - **`Escape`:** Graceful GLFW window closure pass.
 
 ---
@@ -53,9 +56,9 @@ g++ -std=c++20 -Wall -Wextra -Iinclude -c src/Engine.cpp -o src/Engine.o && g++ 
 - [x] Phase F: Broad-Phase Spatial Partitioning Cell Mapping
 - [x] Phase G: Dynamic Lifetime Sweeping & Underworld Garbage Collection
 - [x] Phase H: Interactive Raycast Picking & Targeted Entity Deletion Loop
-- [ ] **Phase I: Broad-Phase Spatial Partitioning Integration for the Raycaster (Next Operation)**
-- [ ] Phase J: Real-time Raycast 3D Visual Debugger Trail Particle Indicators
-- [ ] Phase K: Structural sandbox voxel editing (Flush right-click block placement)
+- [x] Phase I: Broad-Phase Spatial Partitioning Integration for the Raycaster
+- [x] Phase J: Real-time Raycast 3D Visual Debugger Trail Particle Indicators
+- [x] Phase K: Structural Sandbox Voxel Block Placement Engine
 
 ---
 
