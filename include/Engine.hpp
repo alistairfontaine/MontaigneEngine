@@ -60,6 +60,9 @@ public:
     // Phase L: Persistent Disk Serialization Utility Functions
     void SaveWorld(const std::string& filename);
     void LoadWorld(const std::string& filename);
+
+    // Phase N: Self-Contained Mathematical Procedural Noise Generator Mechanics
+    float CalculateNoiseHeight(float x, float z) const;
 };
 
 #endif // ENGINE_HPP

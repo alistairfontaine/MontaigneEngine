@@ -86,10 +86,17 @@ bool Engine::Initialize() {
 
     // Build stable 7x7 structural floor tile map using the dedicated floor texture
 
-    for (int x = -3; x <= 3; ++x) {
-        for (int z = -3; z <= 3; ++z) {
-            Vec3 floorPos = Vec3{ static_cast<float>(x * 2.0f), -2.0f, static_cast<float>(z * 2.0f) };
-            Vec3 floorScale = Vec3{ 0.95f, 0.1f, 0.95f };
+        // Phase N: Build a wide, procedurally generated rolling hill landscape map matrix
+    for (int x = -12; x <= 12; ++x) {
+        for (int z = -12; z <= 12; ++z) {
+            float worldX = static_cast<float>(x * 2.0f);
+            float worldZ = static_cast<float>(z * 2.0f);
+
+            // Query your self-contained fractal wave engine to extract elevation properties
+            float worldY = CalculateNoiseHeight(worldX, worldZ);
+
+            Vec3 floorPos = Vec3{ worldX, worldY, worldZ };
+            Vec3 floorScale = Vec3{ 0.95f, 0.95f, 0.95f }; // Solid cube sizes for organic block hills
             SpawnCube(floorPos, Vec3{0.0f, 0.0f, 0.0f}, floorScale, sharedFloorTexture);
         }
     }
@@ -525,5 +532,22 @@ void Engine::LoadWorld(const std::string& filename) {
     inFile.close();
     std::cout << "[Serialization] World data loaded successfully! Restored blocks: " << count << std::endl;
 }
+
+float Engine::CalculateNoiseHeight(float x, float z) const {
+    // Smooth fractal fractional sine wave noise math function shortcut
+    float x1 = std::sin(x * 0.125f + 1.23f) * 4.56f;
+    float z1 = std::cos(z * 0.151f + 2.34f) * 3.45f;
+    float layer1 = x1 + z1;
+
+    // Secondary high-frequency wave layer to simulate fine topological ridges
+    float x2 = std::sin(x * 0.357f + 4.56f) * 1.23f;
+    float z2 = std::cos(z * 0.412f + 5.67f) * 0.98f;
+    float layer2 = x2 + z2;
+
+    // Blend and truncate the wave peaks to return a solid floor integer index shift
+    float totalHeight = layer1 + layer2;
+    return std::floor(totalHeight);
+}
+
 
 
