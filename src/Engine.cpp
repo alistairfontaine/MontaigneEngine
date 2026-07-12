@@ -9,8 +9,10 @@
 Engine::Engine()
     : window(nullptr), globalShader(nullptr), nextEntityID(0), centerpieceID(-1),
       sharedCubeMesh{0, 0, 0}, sharedCubeTexture(0), sharedFloorTexture(0), deltaTime(0.0f), lastFrame(0.0f),
-      lastX(400.0f), lastY(300.0f), firstMouse(true), verticalVelocity(0.0f), isGrounded(false) {
+      lastX(400.0f), lastY(300.0f), firstMouse(true), verticalVelocity(0.0f), isGrounded(false),
+      raycastTrailTimer(0.0f) {
 }
+
 
 
 
@@ -162,30 +164,30 @@ void Engine::ProcessInput() {
         ePressedLastFrame = false;
     }
 
-    // Surgical Step 4: Add ray distance stepping sequence
+    // --- PHASES H & J: ACCELERATED RAYCAST PICKING & VISUAL TRAIL VECTOR CAPTURE ---
     static bool mousePressedLastFrame = false;
     if (Input::IsMouseButtonPressed(window, GLFW_MOUSE_BUTTON_LEFT)) {
         if (!mousePressedLastFrame) {
             float radYaw = camera.yaw * 0.0174533f;
             float radPitch = camera.pitch * 0.0174533f;
-
             Vec3 rayDir;
             rayDir.x = cos(radYaw) * cos(radPitch);
             rayDir.y = sin(radPitch);
             rayDir.z = sin(radYaw) * cos(radPitch);
-
             Vec3 normRayDir = Vec3::Normalize(rayDir);
 
             float maxRayDistance = 20.0f;
-            float stepSize = 0.1f;
+            float stepSize = 0.2f;
             bool hitFound = false;
             int targetDeleteID = -1;
 
-            Vec3 finalPoint = camera.pos;
+            raycastTrailPoints.clear();
+            raycastTrailTimer = 0.2f;
 
-            // Phase I: Spatial Grid Assisted Raycast Intersector
+            Vec3 finalPoint = camera.pos;
             for (float dist = 0.5f; dist < maxRayDistance; dist += stepSize) {
                 finalPoint = camera.pos + (normRayDir * dist);
+                raycastTrailPoints.push_back(finalPoint);
                 std::vector<Entity*> cellCubes = spatialGrid.GetEntitiesAtPosition(finalPoint);
                 for (Entity* e : cellCubes) { if (e->id > centerpieceID) { AABB b = e->GetBoundingBox(); if (finalPoint.x >= b.minBounds.x && finalPoint.x <= b.maxBounds.x && finalPoint.y >= b.minBounds.y && finalPoint.y <= b.maxBounds.y && finalPoint.z >= b.minBounds.z && finalPoint.z <= b.maxBounds.z) { targetDeleteID = e->id; hitFound = true; break; } } }
                 if (hitFound) break;
@@ -193,16 +195,15 @@ void Engine::ProcessInput() {
 
             if (hitFound && targetDeleteID != -1) {
                 entities.erase(targetDeleteID);
-                std::cout << "[Accelerated Raycaster] Object Blasted! ID: " << targetDeleteID << std::endl;
+                std::cout << "[Spatial Raycaster] Target Purged Natively! ID: " << targetDeleteID << std::endl;
             }
-
-
         }
         mousePressedLastFrame = true;
     } else {
         mousePressedLastFrame = false;
     }
 }
+
 
 
 
@@ -331,7 +332,31 @@ void Engine::Run() {
             pair.second.Draw(*globalShader);
         }
 
+        // Phase J: Draw the laser visual trail particles before swapping screens
+        if (raycastTrailTimer > 0.0f) {
+            raycastTrailTimer -= deltaTime; // Tick the clock down
+
+            // Bind your bright checkerboard tile texture to make the laser trail fully visible
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, sharedFloorTexture);
+
+            for (const auto& point : raycastTrailPoints) {
+                Mat4 translationMatrix = Mat4::Translation(point.x, point.y, point.z);
+                Mat4 scaleMatrix       = Mat4::Scaling(0.2f, 0.2f, 0.2f); // Increased scale value to preserve shader lighting calculations
+                Mat4 modelMatrix       = translationMatrix * scaleMatrix;
+
+                globalShader->setMat4("model", modelMatrix.m);
+
+                glBindVertexArray(sharedCubeMesh.vao);
+                glDrawArrays(GL_TRIANGLES, 0, sharedCubeMesh.vertexCount);
+            }
+            glBindVertexArray(0);
+        }
+
+
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 }
+

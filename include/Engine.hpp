@@ -40,6 +40,10 @@ public:
     float verticalVelocity;
     bool isGrounded;
 
+    // Phase J: Real-time Raycast Trail Particle variables
+    std::vector<Vec3> raycastTrailPoints;
+    float raycastTrailTimer;
+
     Engine();
     ~Engine();
 
