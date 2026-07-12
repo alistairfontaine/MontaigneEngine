@@ -183,17 +183,19 @@ void Engine::ProcessInput() {
 
             Vec3 finalPoint = camera.pos;
 
-            // Precision Single-Line Checking Chip
+            // Phase I: Spatial Grid Assisted Raycast Intersector
             for (float dist = 0.5f; dist < maxRayDistance; dist += stepSize) {
                 finalPoint = camera.pos + (normRayDir * dist);
-                for (auto& p : entities) { if (p.second.id > centerpieceID) { AABB b = p.second.GetBoundingBox(); if (finalPoint.x >= b.minBounds.x && finalPoint.x <= b.maxBounds.x && finalPoint.y >= b.minBounds.y && finalPoint.y <= b.maxBounds.y && finalPoint.z >= b.minBounds.z && finalPoint.z <= b.maxBounds.z) { targetDeleteID = p.second.id; hitFound = true; break; } } }
+                std::vector<Entity*> cellCubes = spatialGrid.GetEntitiesAtPosition(finalPoint);
+                for (Entity* e : cellCubes) { if (e->id > centerpieceID) { AABB b = e->GetBoundingBox(); if (finalPoint.x >= b.minBounds.x && finalPoint.x <= b.maxBounds.x && finalPoint.y >= b.minBounds.y && finalPoint.y <= b.maxBounds.y && finalPoint.z >= b.minBounds.z && finalPoint.z <= b.maxBounds.z) { targetDeleteID = e->id; hitFound = true; break; } } }
                 if (hitFound) break;
             }
 
             if (hitFound && targetDeleteID != -1) {
                 entities.erase(targetDeleteID);
-                std::cout << "[Raycaster] Object Destroyed! ID: " << targetDeleteID << std::endl;
+                std::cout << "[Accelerated Raycaster] Object Blasted! ID: " << targetDeleteID << std::endl;
             }
+
 
         }
         mousePressedLastFrame = true;

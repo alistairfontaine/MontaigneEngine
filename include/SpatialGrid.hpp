@@ -62,6 +62,20 @@ struct SpatialGrid {
         }
         return potentials;
     }
+
+    // Chip 1: Fetch entity pointers standing inside a raw world coordinate cell
+    std::vector<Entity*> GetEntitiesAtPosition(const Vec3& pos) const {
+        std::vector<Entity*> candidates;
+        auto cellCoord = Quantize(pos);
+        auto it = cells.find(cellCoord);
+        if (it != cells.end()) {
+            for (Entity* e : it->second) {
+                candidates.push_back(e);
+            }
+        }
+        return candidates;
+    }
 };
 
 #endif // SPATIAL_GRID_HPP
+
