@@ -478,7 +478,16 @@ void Engine::Run() {
         globalShader->setVec3("viewPos", camera.pos.x, camera.pos.y, camera.pos.z);
         globalShader->setInt("texture1", 0);
 
+        // Phase R: Compute Solar Vector Orbital Trajectory Coordinates over Game Timer
+        float timeScale = static_cast<float>(glfwGetTime()) * 0.15f; // Adjusts speed factor of day cycle
+        float lightX = std::cos(timeScale) * 15.0f;
+        float lightY = std::sin(timeScale) * 15.0f; // Orbiting circular height plane offset
+        float lightZ = 4.0f;                        // Soft padding axis
+
+        globalShader->setVec3("lightPos", lightX, lightY, lightZ);
+
         Entity* focalCube = GetEntityByID(centerpieceID);
+
         if (focalCube) {
             focalCube->rotation.y += 0.5f * deltaTime;
         }
