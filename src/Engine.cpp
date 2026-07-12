@@ -202,7 +202,75 @@ void Engine::ProcessInput() {
     } else {
         mousePressedLastFrame = false;
     }
+
+    // --- PHASE K: RIGHT-CLICK INTERACTIVE VOXEL BLOCK PLACEMENT ENGINE ---
+    static bool rightMousePressedLastFrame = false;
+    if (Input::IsMouseButtonPressed(window, GLFW_MOUSE_BUTTON_RIGHT)) {
+        if (!rightMousePressedLastFrame) {
+            float radYaw = camera.yaw * 0.0174533f;
+            float radPitch = camera.pitch * 0.0174533f;
+            Vec3 rayDir;
+            rayDir.x = cos(radYaw) * cos(radPitch);
+            rayDir.y = sin(radPitch);
+            rayDir.z = sin(radYaw) * cos(radPitch);
+            Vec3 normRayDir = Vec3::Normalize(rayDir);
+
+            float maxRayDistance = 20.0f;
+            float stepSize = 0.05f; // Extra fine step precision to lock down exact surface entry
+            bool hitFound = false;
+
+            Vec3 finalPoint = camera.pos;
+            for (float dist = 0.5f; dist < maxRayDistance; dist += stepSize) {
+                finalPoint = camera.pos + (normRayDir * dist);
+
+                std::vector<Entity*> cellCubes = spatialGrid.GetEntitiesAtPosition(finalPoint);
+                for (Entity* e : cellCubes) {
+                    AABB b = e->GetBoundingBox();
+                    if (finalPoint.x >= b.minBounds.x && finalPoint.x <= b.maxBounds.x && finalPoint.y >= b.minBounds.y && finalPoint.y <= b.maxBounds.y && finalPoint.z >= b.minBounds.z && finalPoint.z <= b.maxBounds.z) {
+
+                        // Calculate vector offset from the center of the block we impacted
+                        Vec3 delta;
+                        delta.x = finalPoint.x - e->position.x;
+                        delta.y = finalPoint.y - e->position.y;
+                        delta.z = finalPoint.z - e->position.z;
+
+                        // Isolate which axis component is closest to the cube profile surface boundaries
+                        float absX = std::abs(delta.x) / e->scale.x;
+                        float absY = std::abs(delta.y) / e->scale.y;
+                        float absZ = std::abs(delta.z) / e->scale.z;
+
+                        Vec3 spawnOffset = Vec3{0.0f, 0.0f, 0.0f};
+
+                        if (absX > absY && absX > absZ) {
+                            spawnOffset.x = (delta.x > 0.0f) ? (e->scale.x + 0.5f) : -(e->scale.x + 0.5f);
+                        } else if (absY > absX && absY > absZ) {
+                            spawnOffset.y = (delta.y > 0.0f) ? (e->scale.y + 0.5f) : -(e->scale.y + 0.5f);
+                        } else {
+                            spawnOffset.z = (delta.z > 0.0f) ? (e->scale.z + 0.5f) : -(e->scale.z + 0.5f);
+                        }
+
+                        // Determine the final clean grid anchor matrix position slot
+                        Vec3 buildPos;
+                        buildPos.x = e->position.x + spawnOffset.x;
+                        buildPos.y = e->position.y + spawnOffset.y;
+                        buildPos.z = e->position.z + spawnOffset.z;
+
+                        SpawnCube(buildPos, Vec3{0.0f, 0.0f, 0.0f}, Vec3{0.5f, 0.5f, 0.5f}, sharedCubeTexture);
+                        std::cout << "[Voxel Builder] New block snapped flush onto grid arrays!" << std::endl;
+
+                        hitFound = true;
+                        break;
+                    }
+                }
+                if (hitFound) break;
+            }
+        }
+        rightMousePressedLastFrame = true;
+    } else {
+        rightMousePressedLastFrame = false;
+    }
 }
+
 
 
 
