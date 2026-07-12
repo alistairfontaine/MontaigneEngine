@@ -20,9 +20,16 @@ struct Entity {
     bool isGrounded;
     float lifetime; // Track how long this cube has been alive in seconds
 
+    // Phase P: Face shadow tracking attributes (0.3f = deep corner cave, 1.0f = clear sky open air)
+    // Indexes: 0 = Top, 1 = Bottom, 2 = North (+Z), 3 = South (-Z), 4 = East (+X), 5 = West (-X)
+    float faceOcclusion[6];
+
     Entity(int uniqueID, Mesh m, Vec3 pos, GLuint tex)
         : id(uniqueID), mesh(m), position(pos), rotation{0.0f, 0.0f, 0.0f}, scale{1.0f, 1.0f, 1.0f}, textureID(tex),
-          velocity{0.0f, 0.0f, 0.0f}, isGrounded(false), lifetime(0.0f) {}
+          velocity{0.0f, 0.0f, 0.0f}, isGrounded(false), lifetime(0.0f) {
+              faceOcclusion[0] = 1.0f; faceOcclusion[1] = 1.0f; faceOcclusion[2] = 1.0f;
+              faceOcclusion[3] = 1.0f; faceOcclusion[4] = 1.0f; faceOcclusion[5] = 1.0f;
+          }
 
 
     // Computes bounding volume extents from center-point translations
@@ -47,6 +54,10 @@ struct Entity {
         Mat4 modelMatrix = translationMatrix * rotationMatrix * scaleMatrix;
 
         shader.setMat4("model", modelMatrix.m);
+
+        // Phase P: Pass localized neighborhood face occlusion scalars up to shader handles
+        shader.setFloat("ao_top_bot_north", faceOcclusion[0]);
+        shader.setFloat("ao_south_east_west", faceOcclusion[3]);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureID);

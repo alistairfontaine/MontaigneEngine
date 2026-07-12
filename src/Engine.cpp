@@ -358,7 +358,33 @@ void Engine::Run() {
             spatialGrid.Insert(&pair.second);
         }
 
+        // Phase P: Broad-Phase Neighborhood Voxel Ambient Occlusion Sampling Loop
+        for (auto& pair : entities) {
+            Entity& e = pair.second;
+
+            // Offset tracking targets for all 6 orthogonal directional vectors
+            Vec3 topPos    = Vec3{ e.position.x,        e.position.y + 2.0f, e.position.z };
+            Vec3 botPos    = Vec3{ e.position.x,        e.position.y - 2.0f, e.position.z };
+            Vec3 northPos  = Vec3{ e.position.x,        e.position.y,        e.position.z + 2.0f };
+            Vec3 southPos  = Vec3{ e.position.x,        e.position.y,        e.position.z - 2.0f };
+            Vec3 eastPos   = Vec3{ e.position.x + 2.0f, e.position.y,        e.position.z };
+            Vec3 westPos   = Vec3{ e.position.x - 2.0f, e.position.y,        e.position.z };
+
+            // Default all channels to full bright open air state values
+            e.faceOcclusion[0] = 1.0f; e.faceOcclusion[1] = 1.0f; e.faceOcclusion[2] = 1.0f;
+            e.faceOcclusion[3] = 1.0f; e.faceOcclusion[4] = 1.0f; e.faceOcclusion[5] = 1.0f;
+
+            // Query spatial partitioned map sectors rapidly for block presence matches
+            auto c0 = spatialGrid.GetEntitiesAtPosition(topPos);   if (!c0.empty()) e.faceOcclusion[0] = 0.4f;
+            auto c1 = spatialGrid.GetEntitiesAtPosition(botPos);   if (!c1.empty()) e.faceOcclusion[1] = 0.4f;
+            auto c2 = spatialGrid.GetEntitiesAtPosition(northPos); if (!c2.empty()) e.faceOcclusion[2] = 0.4f;
+            auto c3 = spatialGrid.GetEntitiesAtPosition(southPos); if (!c3.empty()) e.faceOcclusion[3] = 0.4f;
+            auto c4 = spatialGrid.GetEntitiesAtPosition(eastPos);  if (!c4.empty()) e.faceOcclusion[4] = 0.4f;
+            auto c5 = spatialGrid.GetEntitiesAtPosition(westPos);  if (!c5.empty()) e.faceOcclusion[5] = 0.4f;
+        }
+
         // Process gravity and mutual stacking checks ONLY for newly spawned cubes
+
         for (auto& pair : entities) {
             Entity& currentEntity = pair.second;
 

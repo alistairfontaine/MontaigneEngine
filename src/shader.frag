@@ -5,6 +5,7 @@ out vec4 FragColor;
 in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragPos;
+in float AmbientOcclusion; // Catch the face shadow scalar from the vertex step
 
 uniform sampler2D texture1;
 uniform vec3 viewPos;
@@ -28,6 +29,10 @@ void main() {
     vec4 texColor = texture(texture1, TexCoord);
     vec3 baseMaterialColor = max(texColor.rgb, vec3(0.15, 0.15, 0.15));
 
-    vec3 finalColor = (ambient + diffuse + specular) * baseMaterialColor;
+    // Combine diffuse and ambient vectors, then smoothly bake in Ambient Occlusion shadows
+    vec3 lighting = (ambient + diffuse + specular) * AmbientOcclusion;
+    vec3 finalColor = lighting * baseMaterialColor;
+
     FragColor = vec4(finalColor, texColor.a);
 }
+
