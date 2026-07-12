@@ -71,12 +71,25 @@ public:
             std::cout << "[AssetLoader] Successfully loaded texture: " << chosenPath << " (" << w << "x" << h << ")\n";
             stbi_image_free(data);
         } else {
-            std::cout << "[AssetLoader] Warning: Could not load image file " << path << ". Using white fallback.\n";
-            unsigned char whitePixel[] = { 255, 255, 255 };
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1, 1, 0, GL_RGB, GL_UNSIGNED_BYTE, whitePixel);
+            std::cout << "[AssetLoader] Warning: Could not load image file " << path << ". Generating 2x2 high-visibility checkerboard fallback inside memory.\n";
+
+            // Phase O: Procedural 2x2 high-visibility magenta/black checkerboard generation map
+            unsigned char fallbackPixels[] = {
+                255, 0, 255,   0, 0, 0,      // Row 1: Magenta, Black
+                0, 0, 0,       255, 0, 255   // Row 2: Black, Magenta
+            };
+
+            // Force pixel alignment rules down to a single byte layout for safety
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_UNSIGNED_BYTE, fallbackPixels);
+
+            // Force nearest-neighbour sampling to keep the fallback texture clean and sharp
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         }
         return texID;
     }
+
 
     static Mesh loadMesh(const std::string& path) {
         std::vector<ObjVertex> temp_vertices;
