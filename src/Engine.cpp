@@ -358,12 +358,32 @@ void Engine::HandleMouseInput(double xpos, double ypos) {
 }
 
 void Engine::Run() {
+    // Phase S: Terminal Profiler State Accumulator Flags
+    float profilerTimer = 0.0f;
+    int frameCounter = 0;
+
     while (!glfwWindowShouldClose(window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
         ProcessInput();
+
+        // Phase S: Real-Time Telemetry Diagnostic Frame Engine
+        frameCounter++;
+        profilerTimer += deltaTime;
+        if (profilerTimer >= 1.0f) {
+            float calculatedFPS = static_cast<float>(frameCounter) / profilerTimer;
+
+            // Clean inline console overwrite code using carriage returns (\r)
+            std::cout << "\r[Telemetry] FPS: " << static_cast<int>(calculatedFPS)
+                      << " | Active RAM Entities: " << entities.size()
+                      << " | Spatial Cells: " << spatialGrid.cells.size() << "     " << std::flush;
+
+            frameCounter = 0;
+            profilerTimer = 0.0f;
+        }
+
         // --- PHASE G: BROAD-PHASE SPATIAL ACCELERATION & GARBAGE COLLECTION ---
         float gravity = -9.81f;
 
