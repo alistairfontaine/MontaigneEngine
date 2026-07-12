@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="Montaigne Engine Logo" width="300"/>
+</p>
+
 # Montaigne Engine
 
 Montaigne Engine is a custom, low-level 3D sandbox engine written from scratch in modern C++20 and OpenGL. Built with a strict focus on memory safety, defensive coding protocols, and optimal pointer data constraints, this project contains no massive commercial engines or black-box wrappers—every transformation matrix, physical intersection check, and memory sweeper pass is manually written and compiled natively.
