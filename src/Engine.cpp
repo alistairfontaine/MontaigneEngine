@@ -164,8 +164,30 @@ void Engine::ProcessInput() {
         ePressedLastFrame = false;
     }
 
+    // Phase L: Live Serialization Debounce Input Hooks
+    static bool kPressedLastFrame = false;
+    if (Input::IsPressed(GLFW_KEY_K)) {
+        if (!kPressedLastFrame) {
+            SaveWorld("world.sav");
+        }
+        kPressedLastFrame = true;
+    } else {
+        kPressedLastFrame = false;
+    }
+
+    static bool lPressedLastFrame = false;
+    if (Input::IsPressed(GLFW_KEY_L)) {
+        if (!lPressedLastFrame) {
+            LoadWorld("world.sav");
+        }
+        lPressedLastFrame = true;
+    } else {
+        lPressedLastFrame = false;
+    }
+
     // --- PHASES H & J: ACCELERATED RAYCAST PICKING & VISUAL TRAIL VECTOR CAPTURE ---
     static bool mousePressedLastFrame = false;
+
     if (Input::IsMouseButtonPressed(window, GLFW_MOUSE_BUTTON_LEFT)) {
         if (!mousePressedLastFrame) {
             float radYaw = camera.yaw * 0.0174533f;
@@ -427,4 +449,66 @@ void Engine::Run() {
         glfwPollEvents();
     }
 }
+
+void Engine::SaveWorld(const std::string& filename) {
+    std::ofstream outFile(filename);
+    if (!outFile.is_open()) {
+        std::cerr << "[Serialization] Critical Error: Cannot create world save file!" << std::endl;
+        return;
+    }
+
+    // Write out the total count of blocks currently tracking in the map allocation
+    outFile << entities.size() << "\n";
+
+    // Loop elements and parse layout fields cleanly
+    for (const auto& pair : entities) {
+        const Entity& e = pair.second;
+        outFile << e.id << " "
+                << e.position.x << " " << e.position.y << " " << e.position.z << " "
+                << e.rotation.x << " " << e.rotation.y << " " << e.rotation.z << " "
+                << e.scale.x << " " << e.scale.y << " " << e.scale.z << " "
+                << e.textureID << "\n";
+    }
+
+    outFile.close();
+    std::cout << "[Serialization] Progress saved successfully to: " << filename << std::endl;
+}
+
+void Engine::LoadWorld(const std::string& filename) {
+    std::ifstream inFile(filename);
+    if (!inFile.is_open()) {
+        std::cerr << "[Serialization] Notice: No world save file detected. Starting blank canvas." << std::endl;
+        return;
+    }
+
+    size_t count = 0;
+    if (!(inFile >> count)) return;
+
+    // Flush active entities completely to avoid loading stacked array duplicates
+    entities.clear();
+    nextEntityID = 0;
+
+    for (size_t i = 0; i < count; ++i) {
+        int id;
+        Vec3 pos, rot, scale;
+        GLuint tex;
+
+        if (inFile >> id >> pos.x >> pos.y >> pos.z >> rot.x >> rot.y >> rot.z >> scale.x >> scale.y >> scale.z >> tex) {
+            // Re-instantiate entity block inside your master engine list
+            auto result = entities.emplace(id, Entity(id, sharedCubeMesh, pos, tex));
+            Entity& loadedCube = result.first->second;
+            loadedCube.rotation = rot;
+            loadedCube.scale = scale;
+
+            // Maintain your structural global tracking index threshold mechanics
+            if (id >= nextEntityID) {
+                nextEntityID = id + 1;
+            }
+        }
+    }
+
+    inFile.close();
+    std::cout << "[Serialization] World data loaded successfully! Restored blocks: " << count << std::endl;
+}
+
 

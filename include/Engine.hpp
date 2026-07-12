@@ -54,6 +54,10 @@ public:
 
     Entity* SpawnCube(Vec3 position, Vec3 rotation, Vec3 scale, GLuint customTexture);
     Entity* GetEntityByID(int id);
+
+    // Phase L: Persistent Disk Serialization Utility Functions
+    void SaveWorld(const std::string& filename);
+    void LoadWorld(const std::string& filename);
 };
 
 #endif // ENGINE_HPP
