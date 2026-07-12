@@ -60,6 +60,18 @@ export DISPLAY=:0 && g++ -std=c++20 -Wall -Wextra -Iinclude -c src/Engine.cpp -o
 - [x] Phase J: Real-time Raycast 3D Visual Debugger Trail Particle Indicators
 - [x] Phase K: Structural Sandbox Voxel Block Placement Engine
 
+### 🌌 Advanced Expansion Stack (The Public Release Runway)
+- [ ] **Phase L: Persistent Disk Serialization (World Saving/Loading via 'K' Key Input) [Next Operation]**
+- [ ] Phase M: Creative Inventory Arrays & Voxel Material Texture Hotbar Selectors
+- [ ] Phase N: Procedural Infinite Terrains via Mathematical Perlin Noise Generation Loops
+- [ ] Phase O: Public Deployment Optimization (GitHub Release Module & Automated Binary Asset Packaging)
+
+### 🚀 Engine Horizon Stack (Post-Release Core Upgrades)
+- [ ] Phase P: Dynamic Voxel Ambient Occlusion (Smooth Vertex Corner Shading Math)
+- [ ] Phase Q: Player-to-Voxel AABB Hard-Clipping Physics (Stopping Camera-through-Block clipping)
+- [ ] Phase R: Dynamic Day/Night Lighting Cycle (Uniform Vector Sun Path Rotation Shaders)
+- [ ] Phase S: Real-Time Diagnostic Engine Profiler (On-Screen FPS & Active Allocations Memory Tracker)
+
 ---
 
 ## 🔧 Build Requirements & Infrastructure
